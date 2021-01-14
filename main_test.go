@@ -50,6 +50,24 @@ func Test_well(t *testing.T) {
 
 		tearDown()
 	})
+
+	t.Run("it can make the messy #3 well imported", func(t *testing.T) {
+		makeTempFileFilledWith(getMessySourceFileContent3())
+
+		well(TestFileName)
+
+		welledContent, err := ioutil.ReadFile(TestFileName)
+		if err != nil {
+			_ = fmt.Errorf("failed to load well imported file duo to %s", err.Error())
+			os.Exit(1)
+		}
+
+		if bytes.Compare(welledContent, getWellSourceFileContent3()) != 0 {
+			t.Error("well importing didn't make the import portion well!")
+		}
+
+		tearDown()
+	})
 }
 
 func tearDown() {
@@ -106,6 +124,37 @@ import (
     "os/signal"
 
     "github.com/andybalholm/cascadia"
+)
+
+func someFunction() {}`)
+}
+
+func getMessySourceFileContent3() []byte {
+	return []byte(`package main
+
+import (
+    "fmt"
+    fuzz "github.com/andybalholm/cascadia/fuzz"
+    "github.com/andybalholm/cascadia"
+    "os/signal"
+    f "flag"
+    "os"
+)
+
+func someFunction() {}`)
+}
+
+func getWellSourceFileContent3() []byte {
+	return []byte(`package main
+
+import (
+    "fmt"
+    "os"
+    "os/signal"
+    f "flag"
+
+    "github.com/andybalholm/cascadia"
+    fuzz "github.com/andybalholm/cascadia/fuzz"
 )
 
 func someFunction() {}`)
