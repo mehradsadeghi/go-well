@@ -3,18 +3,18 @@ package main
 import (
     "fmt"
     "os"
-    
+    "os/signal"
+
     "github.com/andybalholm/cascadia"
+    "github.com/gin-gonic/gin"
 )
-// "github.com/gin-gonic/gin"
-// "os/signal"
 // f "flag"
 // testing "google.golang.org/protobuf/testing/prototest"
 
 func justForIgnoringErrors() {
     cascadia.Parse("A")
-    //gin.New()
-    //signal.Ignore()
+    gin.New()
+    signal.Ignore()
     //stupidEnum := testing.Enum{}
     //fmt.Println(stupidEnum)
     fmt.Println("A")

@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"net"
 	"os"
 	"strings"
 )
@@ -32,25 +33,37 @@ func main() {
 	importPart, startIndex, endIndex := extract(string(file))
 	beforeImportContent := file[0:startIndex]
 	afterImportContent := file[endIndex+1:]
+
 	importPartLines := strings.Split(importPart, "\n")
-	packages := make([]string, 0)
+	builtInPackages := make([]string, 0)
+	externalPackages := make([]string, 0)
 	for _, packageName := range importPartLines {
 		packageName = strings.TrimSpace(packageName)
-		if strings.Contains(packageName, "/") {
-			packages = append(packages, "\n")
+		packageName = strings.ReplaceAll(packageName, "\"", "")
+
+		if packageName == "" {
+			continue
 		}
 
-		if packageName != "" {
-			packages = append(packages, packageName)
+		if strings.Contains(packageName, "/") {
+			_, err := net.LookupHost(strings.Split(packageName, "/")[0])
+			if err != nil {
+				builtInPackages = append(builtInPackages, "\"" + packageName + "\"")
+			} else {
+				externalPackages = append(externalPackages, "\"" + packageName + "\"")
+			}
+		} else {
+			builtInPackages = append(builtInPackages, "\"" + packageName + "\"")
 		}
 	}
 
 	temp := ""
-	for _, line := range packages {
-		temp = temp + "    " + line
-		if line != "\n" {
-			temp = temp + "\n"
-		}
+	for _, line := range builtInPackages {
+		temp = temp + "    " + line + "\n"
+	}
+	temp = temp + "\n"
+	for _, line := range externalPackages {
+		temp = temp + "    " + line + "\n"
 	}
 
 	importPart = "import (\n" + temp + ")"
