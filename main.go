@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -45,17 +46,36 @@ func main() {
 			continue
 		}
 
+		// is aliased
+		alias := ""
+		if strings.Contains(packageName, " ") {
+			explodedByWhiteSpace := strings.Split(packageName, " ")
+			alias = explodedByWhiteSpace[0]
+			packageName = explodedByWhiteSpace[1]
+		}
+
 		if strings.Contains(packageName, "/") {
 			_, err := net.LookupHost(strings.Split(packageName, "/")[0])
+			packageName = "\"" + packageName + "\""
+			if len(alias) != 0 {
+				packageName = alias + " " + packageName
+			}
 			if err != nil {
-				builtInPackages = append(builtInPackages, "\"" + packageName + "\"")
+				builtInPackages = append(builtInPackages, packageName)
 			} else {
-				externalPackages = append(externalPackages, "\"" + packageName + "\"")
+				externalPackages = append(externalPackages, packageName)
 			}
 		} else {
-			builtInPackages = append(builtInPackages, "\"" + packageName + "\"")
+			packageName = "\"" + packageName + "\""
+			if len(alias) != 0 {
+				packageName = alias + " " + packageName
+			}
+			builtInPackages = append(builtInPackages, packageName)
 		}
 	}
+
+	sort.Strings(builtInPackages)
+	sort.Strings(externalPackages)
 
 	temp := ""
 	for _, line := range builtInPackages {
@@ -75,11 +95,7 @@ func main() {
 	ip = append(ip, beforeImportContent...)
 	ip = append(ip, []byte(importPart)...)
 	ip = append(ip, afterImportContent...)
-	ioutil.WriteFile(
-		FileName,
-		ip,
-		0666,
-	)
+	ioutil.WriteFile(FileName, ip, 0666)
 }
 
 func extract(s string) (string, int64, int64) {
