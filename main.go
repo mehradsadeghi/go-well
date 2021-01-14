@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net"
 	"os"
@@ -13,12 +14,16 @@ func main() {
 	well(FileName)
 }
 
-func well(fileName string) {
-	file, _ := ioutil.ReadFile(fileName)
+func well(fileName string) error {
+	file, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return err
+	}
 
-	importPart, startIndex, endIndex := extract(string(file))
-	beforeImportContent := file[0:startIndex]
-	afterImportContent := file[endIndex+1:]
+	importPart, beforeImportContent, afterImportContent := extractImportPortion(string(file))
+	if len(importPart) == 0 {
+		return fmt.Errorf("there is no import in %s", fileName)
+	}
 
 	importPartLines := strings.Split(importPart, "\n")
 	builtInPackages := make([]string, 0)
@@ -70,6 +75,7 @@ func well(fileName string) {
 
 	importPart = "import (\n" + temp + ")"
 
+	// writing back into the file
 	f, _ := os.OpenFile(fileName, os.O_RDWR, os.ModePerm)
 	defer f.Close()
 
@@ -78,18 +84,23 @@ func well(fileName string) {
 	ip = append(ip, []byte(importPart)...)
 	ip = append(ip, afterImportContent...)
 	ioutil.WriteFile(fileName, ip, 0666)
+
+	return nil
 }
 
-func extract(s string) (string, int64, int64) {
-	startingPoint := "import ("
-	endingPoint := ")"
+func extractImportPortion(content string) (importContent, beforeImportContent, afterImportContent string) {
+	startsWith := "import ("
+	endsWith := ")"
 
-	startIndex := strings.Index(s, startingPoint)
-	if startIndex >= 0 {
-		endIndex := strings.Index(s, endingPoint)
-		if endIndex >= 0 {
-			return s[startIndex+len(startingPoint):endIndex], int64(startIndex), int64(endIndex)
-		}
+	startOfImport := strings.Index(content, startsWith)
+	endOfImport := strings.Index(content, endsWith)
+	if startOfImport < 0 || endOfImport < 0 {
+		return
 	}
-	return "", 0, 0
+
+	beforeImportContent = content[0:int64(startOfImport)]
+	afterImportContent = content[endOfImport+1:]
+	importContent = content[startOfImport+len(startsWith): endOfImport]
+
+	return
 }
