@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -30,35 +29,42 @@ const FileName = "source.go"
 func main() {
 	file, _ := ioutil.ReadFile(FileName)
 
-	importPart, startIndex, _ := match(string(file))
-	parts := strings.Split(importPart, "\n")
+	importPart, startIndex, endIndex := extract(string(file))
+	beforeImportContent := file[0:startIndex]
+	afterImportContent := file[endIndex+1:]
+	importPartLines := strings.Split(importPart, "\n")
 	packages := make([]string, 0)
-	for _, packageName := range parts {
+	for _, packageName := range importPartLines {
+		packageName = strings.TrimSpace(packageName)
 		if packageName != "" {
-			packages = append(packages, strings.TrimSpace(packageName))
+			packages = append(packages, packageName)
 		}
 	}
 
 	importablePackages := "    " + strings.Join(packages, "\n    ")
 	importPart = "import (\n" + importablePackages + "\n)"
 
-	fmt.Println(importPart)
-
 	f, _ := os.OpenFile(FileName, os.O_RDWR, os.ModePerm)
 	defer f.Close()
-	f.WriteAt([]byte{'M', 'E', 'H', 'R', 'A', 'D'}, startIndex)
-	// ioutil.WriteFile(FileName, []byte(importPart), 0666)
 
-	// replace the import part with a placeholder
-	// and then replace the final string with the placeholder
+	ip := append(beforeImportContent, []byte(importPart)...)
+	ip = append(ip, afterImportContent...)
+	ioutil.WriteFile(
+		FileName,
+		ip,
+		0666,
+	)
 }
 
-func match(s string) (string, int64, int) {
-	startIndex := strings.Index(s, "import (")
+func extract(s string) (string, int64, int64) {
+	startingPoint := "import ("
+	endingPoint := ")"
+
+	startIndex := strings.Index(s, startingPoint)
 	if startIndex >= 0 {
-		endIndex := strings.Index(s, ")")
+		endIndex := strings.Index(s, endingPoint)
 		if endIndex >= 0 {
-			return s[startIndex+8:endIndex], int64(startIndex), endIndex
+			return s[startIndex+len(startingPoint):endIndex], int64(startIndex), int64(endIndex)
 		}
 	}
 	return "", 0, 0
