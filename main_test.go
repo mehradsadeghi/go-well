@@ -15,26 +15,26 @@ func Test_well(t *testing.T) {
 	t.Run("it can make the messy #1 well imported", func(t *testing.T) {
 		makeTempFileFilledWith(getMessySourceFileContent1())
 		well(TestFileName)
-		assertTestFileIsEqualTo(t, getWellSourceFileContent1())
+		assertTestFileEqualsTo(t, getWellSourceFileContent1())
 		tearDown()
 	})
 
 	t.Run("it can make the messy #2 well imported", func(t *testing.T) {
 		makeTempFileFilledWith(getMessySourceFileContent2())
 		well(TestFileName)
-		assertTestFileIsEqualTo(t, getWellSourceFileContent2())
+		assertTestFileEqualsTo(t, getWellSourceFileContent2())
 		tearDown()
 	})
 
 	t.Run("it can make the messy #3 well imported", func(t *testing.T) {
 		makeTempFileFilledWith(getMessySourceFileContent3())
 		well(TestFileName)
-		assertTestFileIsEqualTo(t, getWellSourceFileContent3())
+		assertTestFileEqualsTo(t, getWellSourceFileContent3())
 		tearDown()
 	})
 }
 
-func assertTestFileIsEqualTo(t *testing.T, content []byte) {
+func assertTestFileEqualsTo(t *testing.T, content []byte) {
 	t.Helper()
 	welledContent, err := ioutil.ReadFile(TestFileName)
 	if err != nil {

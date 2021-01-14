@@ -20,23 +20,16 @@ func well(fileName string) error {
 		return err
 	}
 
-	importPart, beforeImportContent, afterImportContent := extractImportPortion(string(file))
-	if len(importPart) == 0 {
+	importContents, beforeImportContents, afterImportContents := extractImportPortion(string(file))
+	if len(importContents) == 0 {
 		return fmt.Errorf("there is no import in %s", fileName)
 	}
 
-	importPartLines := strings.Split(importPart, "\n")
+	importLines := normalizeImportLines(strings.Split(importContents, "\n"))
+
 	builtInPackages := make([]string, 0)
 	externalPackages := make([]string, 0)
-	for _, packageName := range importPartLines {
-		packageName = strings.TrimSpace(packageName)
-		packageName = strings.ReplaceAll(packageName, "\"", "")
-
-		if packageName == "" {
-			continue
-		}
-
-		// is aliased
+	for _, packageName := range importLines {
 		alias := ""
 		if strings.Contains(packageName, " ") {
 			explodedByWhiteSpace := strings.Split(packageName, " ")
@@ -73,19 +66,36 @@ func well(fileName string) error {
 		temp = temp + "    " + line + "\n"
 	}
 
-	importPart = "import (\n" + temp + ")"
+	importContents = "import (\n" + temp + ")"
 
 	// writing back into the file
 	f, _ := os.OpenFile(fileName, os.O_RDWR, os.ModePerm)
 	defer f.Close()
 
 	var ip []byte
-	ip = append(ip, beforeImportContent...)
-	ip = append(ip, []byte(importPart)...)
-	ip = append(ip, afterImportContent...)
+	ip = append(ip, beforeImportContents...)
+	ip = append(ip, []byte(importContents)...)
+	ip = append(ip, afterImportContents...)
 	ioutil.WriteFile(fileName, ip, 0666)
 
 	return nil
+}
+
+func normalizeImportLines(importLines []string) []string {
+	normalizedImportLines := make([]string, 0)
+
+	for _, packageName := range importLines {
+		packageName = strings.TrimSpace(packageName)
+		packageName = strings.ReplaceAll(packageName, "\"", "")
+
+		if packageName == "" {
+			continue
+		}
+
+		normalizedImportLines = append(normalizedImportLines, packageName)
+	}
+
+	return normalizedImportLines
 }
 
 func extractImportPortion(content string) (importContent, beforeImportContent, afterImportContent string) {
