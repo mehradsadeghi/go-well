@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
-	"sort"
 	"strings"
 )
 
@@ -59,9 +58,6 @@ func well(fileName string) {
 			builtInPackages = append(builtInPackages, packageName)
 		}
 	}
-
-	sort.Strings(builtInPackages)
-	sort.Strings(externalPackages)
 
 	temp := ""
 	for _, line := range builtInPackages {
