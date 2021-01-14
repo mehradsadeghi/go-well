@@ -10,26 +10,12 @@ import (
 
 const FileName = "source.go"
 
-/*func main() {
-	file, _ := ioutil.ReadFile("source.txt")
-
-	regex, err := regexp.Compile("\n\n")
-	if err != nil {
-		return
-	}
-
-	ioutil.WriteFile(
-		"source.txt",
-		[]byte(regex.ReplaceAllString(string(file), "\n")),
-		0666,
-	)
-}*/
-
-//regex := regexp.MustCompile(`import \(([\s\S]*)\)`)
-//importPart := regex.FindAllStringSubmatch(string(file), -1)[0][1]
-
 func main() {
-	file, _ := ioutil.ReadFile(FileName)
+	well(FileName)
+}
+
+func well(fileName string) {
+	file, _ := ioutil.ReadFile(fileName)
 
 	importPart, startIndex, endIndex := extract(string(file))
 	beforeImportContent := file[0:startIndex]
@@ -88,14 +74,14 @@ func main() {
 
 	importPart = "import (\n" + temp + ")"
 
-	f, _ := os.OpenFile(FileName, os.O_RDWR, os.ModePerm)
+	f, _ := os.OpenFile(fileName, os.O_RDWR, os.ModePerm)
 	defer f.Close()
 
 	var ip []byte
 	ip = append(ip, beforeImportContent...)
 	ip = append(ip, []byte(importPart)...)
 	ip = append(ip, afterImportContent...)
-	ioutil.WriteFile(FileName, ip, 0666)
+	ioutil.WriteFile(fileName, ip, 0666)
 }
 
 func extract(s string) (string, int64, int64) {
