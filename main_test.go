@@ -14,60 +14,36 @@ func Test_well(t *testing.T) {
 
 	t.Run("it can make the messy #1 well imported", func(t *testing.T) {
 		makeTempFileFilledWith(getMessySourceFileContent1())
-
 		well(TestFileName)
-
-		welledContent, err := ioutil.ReadFile(TestFileName)
-		if err != nil {
-			_ = fmt.Errorf("failed to load well imported file duo to %s", err.Error())
-			os.Exit(1)
-		}
-
-		t.Log(welledContent)
-		t.Log(getWellSourceFileContent1())
-
-		if bytes.Compare(welledContent, getWellSourceFileContent1()) != 0 {
-			t.Error("well importing didn't make the import portion well!")
-		}
-
+		assertTestFileIsEqualTo(t, getWellSourceFileContent1())
 		tearDown()
 	})
 
 	t.Run("it can make the messy #2 well imported", func(t *testing.T) {
 		makeTempFileFilledWith(getMessySourceFileContent2())
-
 		well(TestFileName)
-
-		welledContent, err := ioutil.ReadFile(TestFileName)
-		if err != nil {
-			_ = fmt.Errorf("failed to load well imported file duo to %s", err.Error())
-			os.Exit(1)
-		}
-
-		if bytes.Compare(welledContent, getWellSourceFileContent2()) != 0 {
-			t.Error("well importing didn't make the import portion well!")
-		}
-
+		assertTestFileIsEqualTo(t, getWellSourceFileContent2())
 		tearDown()
 	})
 
 	t.Run("it can make the messy #3 well imported", func(t *testing.T) {
 		makeTempFileFilledWith(getMessySourceFileContent3())
-
 		well(TestFileName)
-
-		welledContent, err := ioutil.ReadFile(TestFileName)
-		if err != nil {
-			_ = fmt.Errorf("failed to load well imported file duo to %s", err.Error())
-			os.Exit(1)
-		}
-
-		if bytes.Compare(welledContent, getWellSourceFileContent3()) != 0 {
-			t.Error("well importing didn't make the import portion well!")
-		}
-
+		assertTestFileIsEqualTo(t, getWellSourceFileContent3())
 		tearDown()
 	})
+}
+
+func assertTestFileIsEqualTo(t *testing.T, content []byte) {
+	welledContent, err := ioutil.ReadFile(TestFileName)
+	if err != nil {
+		_ = fmt.Errorf("failed to load well imported file duo to %s", err.Error())
+		os.Exit(1)
+	}
+
+	if bytes.Compare(welledContent, content) != 0 {
+		t.Error("well importing didn't make the import portion well!")
+	}
 }
 
 func tearDown() {
