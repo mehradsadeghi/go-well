@@ -20,40 +20,34 @@ func well(fileName string) error {
 		return err
 	}
 
-	importContents, beforeImportContents, afterImportContents := extractImportPortion(string(file))
+	importContents, beforeImportContents, afterImportContents := extractImportContents(string(file))
 	if len(importContents) == 0 {
 		return fmt.Errorf("there is no import in %s", fileName)
 	}
 
-	importLines := normalizeImportLines(strings.Split(importContents, "\n"))
+	importLines := normalizeImportLines(importContents)
 
 	builtInPackages := make([]string, 0)
 	externalPackages := make([]string, 0)
 	for _, packageName := range importLines {
-		alias := ""
-		if strings.Contains(packageName, " ") {
-			explodedByWhiteSpace := strings.Split(packageName, " ")
-			alias = explodedByWhiteSpace[0]
-			packageName = explodedByWhiteSpace[1]
+		aliasName := ""
+		if isAliased(packageName) {
+			aliasName, packageName = extractAliasedPackage(packageName)
 		}
 
-		if strings.Contains(packageName, "/") {
+		if !strings.Contains(packageName, "/") {
+			builtInPackages = appendTo(builtInPackages, packageName, aliasName)
+		} else {
 			_, err := net.LookupHost(strings.Split(packageName, "/")[0])
 			packageName = "\"" + packageName + "\""
-			if len(alias) != 0 {
-				packageName = alias + " " + packageName
+			if len(aliasName) != 0 {
+				packageName = aliasName + " " + packageName
 			}
 			if err != nil {
 				builtInPackages = append(builtInPackages, packageName)
 			} else {
 				externalPackages = append(externalPackages, packageName)
 			}
-		} else {
-			packageName = "\"" + packageName + "\""
-			if len(alias) != 0 {
-				packageName = alias + " " + packageName
-			}
-			builtInPackages = append(builtInPackages, packageName)
 		}
 	}
 
@@ -81,7 +75,27 @@ func well(fileName string) error {
 	return nil
 }
 
-func normalizeImportLines(importLines []string) []string {
+func appendTo(builtInPackages []string, packageName, aliasName string) []string {
+	packageName = "\"" + packageName + "\""
+	if len(aliasName) != 0 {
+		packageName = aliasName + " " + packageName
+	}
+	builtInPackages = append(builtInPackages, packageName)
+	return builtInPackages
+}
+
+func extractAliasedPackage(name string) (alias, packageName string) {
+	explodedByWhiteSpace := strings.Split(name, " ")
+	return explodedByWhiteSpace[0], explodedByWhiteSpace[1]
+}
+
+func isAliased(packageName string) bool {
+	return strings.Contains(packageName, " ")
+}
+
+func normalizeImportLines(importContent string) []string {
+	importLines := strings.Split(importContent, "\n")
+
 	normalizedImportLines := make([]string, 0)
 
 	for _, packageName := range importLines {
@@ -98,7 +112,7 @@ func normalizeImportLines(importLines []string) []string {
 	return normalizedImportLines
 }
 
-func extractImportPortion(content string) (importContent, beforeImportContent, afterImportContent string) {
+func extractImportContents(content string) (importContent, beforeImportContent, afterImportContent string) {
 	startsWith := "import ("
 	endsWith := ")"
 
