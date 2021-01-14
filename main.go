@@ -36,18 +36,31 @@ func main() {
 	packages := make([]string, 0)
 	for _, packageName := range importPartLines {
 		packageName = strings.TrimSpace(packageName)
+		if strings.Contains(packageName, "/") {
+			packages = append(packages, "\n")
+		}
+
 		if packageName != "" {
 			packages = append(packages, packageName)
 		}
 	}
 
-	importablePackages := "    " + strings.Join(packages, "\n    ")
-	importPart = "import (\n" + importablePackages + "\n)"
+	temp := ""
+	for _, line := range packages {
+		temp = temp + "    " + line
+		if line != "\n" {
+			temp = temp + "\n"
+		}
+	}
+
+	importPart = "import (\n" + temp + ")"
 
 	f, _ := os.OpenFile(FileName, os.O_RDWR, os.ModePerm)
 	defer f.Close()
 
-	ip := append(beforeImportContent, []byte(importPart)...)
+	var ip []byte
+	ip = append(ip, beforeImportContent...)
+	ip = append(ip, []byte(importPart)...)
 	ip = append(ip, afterImportContent...)
 	ioutil.WriteFile(
 		FileName,
