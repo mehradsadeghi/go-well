@@ -64,6 +64,7 @@ func Test_well(t *testing.T) {
 
 func assertTestFileEqualsTo(t *testing.T, content []byte) {
 	t.Helper()
+
 	welledContent, err := ioutil.ReadFile(TestFileName)
 	if err != nil {
 		_ = fmt.Errorf("failed to load well imported file duo to %s", err.Error())

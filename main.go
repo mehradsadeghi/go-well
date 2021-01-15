@@ -94,21 +94,18 @@ func writeTo(fileName string, contents []string) error {
 }
 
 func makeUpImportContents(builtInPackages, externalPackages []string) string {
-	var output string
-	output = output + "import (\n"
+	output := "import (\n"
 
-	if len(makeUpImportLines(builtInPackages)) != 0 {
-		output = output + makeUpImportLines(builtInPackages)
-		output = output + "\n"
+	if len(builtInPackages) != 0 {
+		output = output + makeUpImportLines(builtInPackages) + "\n"
 	}
 
-	if len(makeUpImportLines(externalPackages)) != 0 {
-		if len(makeUpImportLines(builtInPackages)) != 0 {
+	if len(externalPackages) != 0 {
+		if len(builtInPackages) != 0 {
 			output = output + "\n"
 		}
 
-		output = output + makeUpImportLines(externalPackages)
-		output = output + "\n"
+		output = output + makeUpImportLines(externalPackages) + "\n"
 	}
 
 	output = output + ")"
