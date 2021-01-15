@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"net"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -27,8 +26,6 @@ func main() {
 			continue
 		}
 	}
-
-	os.Exit(1)
 }
 
 func getFilesIn(path, extension string) ([]string, error) {
@@ -64,7 +61,7 @@ func well(fileName string) error {
 
 	importContents, beforeImportContents, afterImportContents := extractImportContents(string(file))
 	if len(importContents) == 0 {
-		return fmt.Errorf("there is no import in %s\n", fileName)
+		return nil
 	}
 
 	builtInPackages, externalPackages := categorizePackages(
@@ -154,8 +151,8 @@ func categorizePackages(importLines []string) (builtInPackages, externalPackages
 }
 
 func isACorrectDomainName(packageName string) bool {
-	_, err := net.LookupHost(strings.Split(packageName, "/")[0])
-	if err != nil {
+	matched, err := regexp.MatchString("\\b([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}\\b", packageName)
+	if err != nil || !matched {
 		return false
 	}
 	return true
