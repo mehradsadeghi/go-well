@@ -14,7 +14,7 @@ const FileExtension = "go"
 const SearchIn = "."
 
 func main() {
-	files, err := getFilesIn(SearchIn, FileExtension);
+	files, err := getFilesIn(SearchIn, FileExtension)
 	if err != nil {
 		fmt.Printf("failed loading files duo to %s\n", err.Error())
 		os.Exit(1)
@@ -179,7 +179,7 @@ func sortPackages(packages []string) []string {
 	}
 
 	keys := make([]string, 0, len(extracted))
-	for key, _ := range extracted {
+	for key := range extracted {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)
@@ -238,7 +238,6 @@ func writeTo(fileName string, contents []string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 
 	var output []byte
 
@@ -246,7 +245,13 @@ func writeTo(fileName string, contents []string) error {
 		output = append(output, content...)
 	}
 
-	ioutil.WriteFile(fileName, output, 0666)
+	if err := ioutil.WriteFile(fileName, output, 0666); err != nil {
+		return err
+	}
+
+	if err := f.Close(); err != nil {
+		return err
+	}
 
 	return nil
 }
