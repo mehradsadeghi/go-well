@@ -17,16 +17,18 @@ const SearchIn = "."
 func main() {
 	files, err := getFilesIn(SearchIn, FileExtension);
 	if err != nil {
-		fmt.Printf("failed loading files duo to %s", err.Error())
+		fmt.Printf("failed loading files duo to %s\n", err.Error())
 		os.Exit(1)
 	}
 
 	for _, fileName := range files {
 		if err := well(fileName); err != nil {
-			fmt.Printf("failed welling %s duo to %s", fileName, err.Error())
+			fmt.Printf("failed welling %s duo to %s\n", fileName, err.Error())
 			continue
 		}
 	}
+
+	os.Exit(1)
 }
 
 func getFilesIn(path, extension string) ([]string, error) {
@@ -62,7 +64,7 @@ func well(fileName string) error {
 
 	importContents, beforeImportContents, afterImportContents := extractImportContents(string(file))
 	if len(importContents) == 0 {
-		return fmt.Errorf("there is no import in %s", fileName)
+		return fmt.Errorf("there is no import in %s\n", fileName)
 	}
 
 	builtInPackages, externalPackages := categorizePackages(
@@ -220,7 +222,7 @@ func makeUpImportContents(builtInPackages, externalPackages []string) string {
 func makeUpImportLines(packageNames []string) string {
 	output := make([]string, 0)
 	for _, line := range packageNames {
-		output = append(output, "    " + line)
+		output = append(output, "	" + line)
 	}
 
 	return strings.Join(output, "\n")

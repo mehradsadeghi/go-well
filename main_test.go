@@ -1,11 +1,11 @@
 package main
 
 import (
-    "bytes"
-    "fmt"
-    "io/ioutil"
-    "os"
-    "testing"
+	"bytes"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"testing"
 )
 
 const TestFileName = "test.txt"
@@ -91,8 +91,8 @@ func getMessySourceFileContent1() []byte {
 	return []byte(`package main
 
 import (
-    "fmt"
-    "github.com/andybalholm/cascadia"
+	"fmt"
+	"github.com/andybalholm/cascadia"
 )
 
 func someFunction() {}`)
@@ -102,9 +102,9 @@ func getWellSourceFileContent1() []byte {
 	return []byte(`package main
 
 import (
-    "fmt"
+	"fmt"
 
-    "github.com/andybalholm/cascadia"
+	"github.com/andybalholm/cascadia"
 )
 
 func someFunction() {}`)
@@ -114,9 +114,9 @@ func getMessySourceFileContent2() []byte {
 	return []byte(`package main
 
 import (
-    "fmt"
-    "os/signal"
-    "github.com/andybalholm/cascadia"
+	"fmt"
+	"os/signal"
+	"github.com/andybalholm/cascadia"
 )
 
 func someFunction() {}`)
@@ -126,10 +126,10 @@ func getWellSourceFileContent2() []byte {
 	return []byte(`package main
 
 import (
-    "fmt"
-    "os/signal"
+	"fmt"
+	"os/signal"
 
-    "github.com/andybalholm/cascadia"
+	"github.com/andybalholm/cascadia"
 )
 
 func someFunction() {}`)
@@ -139,12 +139,12 @@ func getMessySourceFileContent3() []byte {
 	return []byte(`package main
 
 import (
-    "fmt"
-    fuzz "github.com/andybalholm/cascadia/fuzz"
-    "github.com/andybalholm/cascadia"
-    "os/signal"
-    f "flag"
-    "os"
+	"fmt"
+	fuzz "github.com/andybalholm/cascadia/fuzz"
+	"github.com/andybalholm/cascadia"
+	"os/signal"
+	f "flag"
+	"os"
 )
 
 func someFunction() {}`)
@@ -154,13 +154,13 @@ func getWellSourceFileContent3() []byte {
 	return []byte(`package main
 
 import (
-    f "flag"
-    "fmt"
-    "os"
-    "os/signal"
+	f "flag"
+	"fmt"
+	"os"
+	"os/signal"
 
-    "github.com/andybalholm/cascadia"
-    fuzz "github.com/andybalholm/cascadia/fuzz"
+	"github.com/andybalholm/cascadia"
+	fuzz "github.com/andybalholm/cascadia/fuzz"
 )
 
 func someFunction() {}`)
@@ -170,8 +170,8 @@ func getMessySourceFileContent4() []byte {
 	return []byte(`package main
 
 import (
-    "os/signal"
-    "fmt"
+	"os/signal"
+	"fmt"
 )
 
 func someFunction() {}`)
@@ -181,8 +181,8 @@ func getWellSourceFileContent4() []byte {
 	return []byte(`package main
 
 import (
-    "fmt"
-    "os/signal"
+	"fmt"
+	"os/signal"
 )
 
 func someFunction() {}`)
@@ -192,8 +192,8 @@ func getMessySourceFileContent5() []byte {
 	return []byte(`package main
 
 import (
-    "github.com/e"
-    "github.com/a"
+	"github.com/e"
+	"github.com/a"
 )
 
 func someFunction() {}`)
@@ -203,8 +203,8 @@ func getWellSourceFileContent5() []byte {
 	return []byte(`package main
 
 import (
-    "github.com/a"
-    "github.com/e"
+	"github.com/a"
+	"github.com/e"
 )
 
 func someFunction() {}`)
@@ -214,8 +214,8 @@ func getUnSortedMessySourceFileContent1() []byte {
 	return []byte(`package main
 
 import (
-    "os"
-    "fmt"
+	"os"
+	"fmt"
 )
 
 func someFunction() {}`)
@@ -225,8 +225,8 @@ func getWellSortedSourceFileContent1() []byte {
 	return []byte(`package main
 
 import (
-    "fmt"
-    "os"
+	"fmt"
+	"os"
 )
 
 func someFunction() {}`)
@@ -236,10 +236,10 @@ func getUnSortedMessySourceFileContent2() []byte {
 	return []byte(`package main
 
 import (
-    "fmt"
-    "os"
-    "github.com/e"
-    "github.com/a"
+	"fmt"
+	"os"
+	"github.com/e"
+	"github.com/a"
 )
 
 func someFunction() {}`)
@@ -249,11 +249,11 @@ func getWellSortedSourceFileContent2() []byte {
 	return []byte(`package main
 
 import (
-    "fmt"
-    "os"
+	"fmt"
+	"os"
 
-    "github.com/a"
-    "github.com/e"
+	"github.com/a"
+	"github.com/e"
 )
 
 func someFunction() {}`)
