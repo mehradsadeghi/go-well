@@ -1,0 +1,12 @@
+package main
+
+import (
+    "fmt"
+    fuzz "github.com/andybalholm/cascadia/fuzz"
+    "github.com/andybalholm/cascadia"
+    "os/signal"
+    f "flag"
+    "os"
+)
+
+func someFunction() {}

@@ -71,32 +71,40 @@ func makeUpImportLines(packageNames []string) (output string) {
 
 func categorizePackages(importLines []string) (builtInPackages, externalPackages []string) {
 	for _, packageName := range importLines {
-		aliasName := ""
+		var aliasName string
 		if isAliased(packageName) {
 			aliasName, packageName = extractAliasedPackage(packageName)
 		}
+
 		if strings.Contains(packageName, "/") {
 			if isACorrectDomainName(packageName) {
-				packageName = makeFinalPackageName(packageName, aliasName)
-				builtInPackages = append(builtInPackages, packageName)
+				externalPackages = append(
+					externalPackages,
+					makeFinalPackageName(packageName, aliasName),
+				)
 			} else {
-				packageName = makeFinalPackageName(packageName, aliasName)
-				externalPackages = append(externalPackages, packageName)
+				builtInPackages = append(
+					builtInPackages,
+					makeFinalPackageName(packageName, aliasName),
+				)
 			}
 		} else {
-			packageName = makeFinalPackageName(packageName, aliasName)
-			builtInPackages = append(builtInPackages, packageName)
+			builtInPackages = append(
+				builtInPackages,
+				makeFinalPackageName(packageName, aliasName),
+			)
 		}
 	}
+
 	return
 }
 
 func isACorrectDomainName(packageName string) bool {
 	_, err := net.LookupHost(strings.Split(packageName, "/")[0])
 	if err != nil {
-		return true
+		return false
 	}
-	return false
+	return true
 }
 
 func makeFinalPackageName(packageName string, aliasName string) string {
