@@ -25,8 +25,10 @@ func well(fileName string) error {
 		return fmt.Errorf("there is no import in %s", fileName)
 	}
 
-	importLines := normalizeImportLines(importContents)
-	builtInPackages, externalPackages := categorizePackages(importLines)
+	builtInPackages, externalPackages := categorizePackages(
+		normalizeImportLines(importContents),
+	)
+
 	importContents = makeUpImportContents(builtInPackages, externalPackages)
 
 	if err := writeTo(fileName, []string{
