@@ -46,80 +46,40 @@ func well(fileName string) error {
 	return nil
 }
 
-func sortPackages(packages []string) []string {
-	extracted := make(map[string]string, 0)
-	for _, packageName := range packages {
-		if isAliased(packageName) {
-			alias, packageName := extractAliasedPackage(packageName)
-			extracted[packageName] = alias
-		} else {
-			extracted[packageName] = packageName
-		}
+func extractImportContents(content string) (importContent, beforeImportContent, afterImportContent string) {
+	startsWith := "import ("
+	endsWith := ")"
+
+	startOfImport := strings.Index(content, startsWith)
+	endOfImport := strings.Index(content, endsWith)
+	if startOfImport < 0 || endOfImport < 0 {
+		return
 	}
 
-	keys := make([]string, 0, len(extracted))
-	for key, _ := range extracted {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
+	beforeImportContent = content[0:int64(startOfImport)]
+	afterImportContent = content[endOfImport+1:]
+	importContent = content[startOfImport+len(startsWith): endOfImport]
 
-	output := make([]string, 0)
-	for _, k := range keys {
-		if k == extracted[k] {
-			output = append(output, k)
+	return
+}
+
+func normalizeImportLines(importContent string) []string {
+	importLines := strings.Split(importContent, "\n")
+
+	normalizedImportLines := make([]string, 0)
+
+	for _, packageName := range importLines {
+		packageName = strings.TrimSpace(packageName)
+		packageName = strings.ReplaceAll(packageName, "\"", "")
+
+		if packageName == "" {
 			continue
 		}
-		output = append(output, extracted[k] + " " + k)
+
+		normalizedImportLines = append(normalizedImportLines, packageName)
 	}
 
-	return output
-}
-
-func writeTo(fileName string, contents []string) error {
-	f, err := os.OpenFile(fileName, os.O_RDWR, os.ModePerm)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	var output []byte
-
-	for _, content := range contents {
-		output = append(output, content...)
-	}
-
-	ioutil.WriteFile(fileName, output, 0666)
-
-	return nil
-}
-
-func makeUpImportContents(builtInPackages, externalPackages []string) string {
-	output := "import (\n"
-
-	if len(builtInPackages) != 0 {
-		output = output + makeUpImportLines(builtInPackages) + "\n"
-	}
-
-	if len(externalPackages) != 0 {
-		if len(builtInPackages) != 0 {
-			output = output + "\n"
-		}
-
-		output = output + makeUpImportLines(externalPackages) + "\n"
-	}
-
-	output = output + ")"
-
-	return output
-}
-
-func makeUpImportLines(packageNames []string) string {
-	output := make([]string, 0)
-	for _, line := range packageNames {
-		output = append(output, "    " + line)
-	}
-
-	return strings.Join(output, "\n")
+	return normalizedImportLines
 }
 
 func categorizePackages(importLines []string) (builtInPackages, externalPackages []string) {
@@ -160,14 +120,6 @@ func isACorrectDomainName(packageName string) bool {
 	return true
 }
 
-func makeFinalPackageName(packageName string, aliasName string) string {
-	packageName = "\"" + packageName + "\""
-	if len(aliasName) != 0 {
-		packageName = aliasName + " " + packageName
-	}
-	return packageName
-}
-
 func extractAliasedPackage(name string) (alias, packageName string) {
 	explodedByWhiteSpace := strings.Split(name, " ")
 	return explodedByWhiteSpace[0], explodedByWhiteSpace[1]
@@ -177,38 +129,86 @@ func isAliased(packageName string) bool {
 	return strings.Contains(packageName, " ")
 }
 
-func normalizeImportLines(importContent string) []string {
-	importLines := strings.Split(importContent, "\n")
+func sortPackages(packages []string) []string {
+	extracted := make(map[string]string, 0)
+	for _, packageName := range packages {
+		if isAliased(packageName) {
+			alias, packageName := extractAliasedPackage(packageName)
+			extracted[packageName] = alias
+		} else {
+			extracted[packageName] = packageName
+		}
+	}
 
-	normalizedImportLines := make([]string, 0)
+	keys := make([]string, 0, len(extracted))
+	for key, _ := range extracted {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
 
-	for _, packageName := range importLines {
-		packageName = strings.TrimSpace(packageName)
-		packageName = strings.ReplaceAll(packageName, "\"", "")
-
-		if packageName == "" {
+	output := make([]string, 0)
+	for _, k := range keys {
+		if k == extracted[k] {
+			output = append(output, k)
 			continue
 		}
-
-		normalizedImportLines = append(normalizedImportLines, packageName)
+		output = append(output, extracted[k] + " " + k)
 	}
 
-	return normalizedImportLines
+	return output
 }
 
-func extractImportContents(content string) (importContent, beforeImportContent, afterImportContent string) {
-	startsWith := "import ("
-	endsWith := ")"
+func makeUpImportContents(builtInPackages, externalPackages []string) string {
+	output := "import (\n"
 
-	startOfImport := strings.Index(content, startsWith)
-	endOfImport := strings.Index(content, endsWith)
-	if startOfImport < 0 || endOfImport < 0 {
-		return
+	if len(builtInPackages) != 0 {
+		output = output + makeUpImportLines(builtInPackages) + "\n"
 	}
 
-	beforeImportContent = content[0:int64(startOfImport)]
-	afterImportContent = content[endOfImport+1:]
-	importContent = content[startOfImport+len(startsWith): endOfImport]
+	if len(externalPackages) != 0 {
+		if len(builtInPackages) != 0 {
+			output = output + "\n"
+		}
 
-	return
+		output = output + makeUpImportLines(externalPackages) + "\n"
+	}
+
+	output = output + ")"
+
+	return output
+}
+
+func makeUpImportLines(packageNames []string) string {
+	output := make([]string, 0)
+	for _, line := range packageNames {
+		output = append(output, "    " + line)
+	}
+
+	return strings.Join(output, "\n")
+}
+
+func makeFinalPackageName(packageName string, aliasName string) string {
+	packageName = "\"" + packageName + "\""
+	if len(aliasName) != 0 {
+		packageName = aliasName + " " + packageName
+	}
+	return packageName
+}
+
+func writeTo(fileName string, contents []string) error {
+	f, err := os.OpenFile(fileName, os.O_RDWR, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	var output []byte
+
+	for _, content := range contents {
+		output = append(output, content...)
+	}
+
+	ioutil.WriteFile(fileName, output, 0666)
+
+	return nil
 }
