@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const FileName = "source.go"
+const FileName = "source.txt"
 
 func main() {
 	well(FileName)
@@ -26,62 +26,85 @@ func well(fileName string) error {
 	}
 
 	importLines := normalizeImportLines(importContents)
+	builtInPackages, externalPackages := categorizePackages(importLines)
+	importContents = makeUpImportContents(builtInPackages, externalPackages)
 
-	builtInPackages := make([]string, 0)
-	externalPackages := make([]string, 0)
+	if err := writeTo(fileName, []string{
+		beforeImportContents,
+		importContents,
+		afterImportContents,
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func writeTo(fileName string, contents []string) error {
+	f, err := os.OpenFile(fileName, os.O_RDWR, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	var output []byte
+
+	for _, content := range contents {
+		output = append(output, content...)
+	}
+
+	ioutil.WriteFile(fileName, output, 0666)
+
+	return nil
+}
+
+func makeUpImportContents(builtInPackages, externalPackages []string) string {
+	return "import (\n" + makeUpImportLines(builtInPackages) + "\n" + makeUpImportLines(externalPackages) + ")"
+}
+
+func makeUpImportLines(builtInPackages []string) (output string) {
+	for _, line := range builtInPackages {
+		output = output + "    " + line + "\n"
+	}
+	return
+}
+
+func categorizePackages(importLines []string) (builtInPackages, externalPackages []string) {
 	for _, packageName := range importLines {
 		aliasName := ""
 		if isAliased(packageName) {
 			aliasName, packageName = extractAliasedPackage(packageName)
 		}
-
-		if !strings.Contains(packageName, "/") {
-			builtInPackages = appendTo(builtInPackages, packageName, aliasName)
-		} else {
-			_, err := net.LookupHost(strings.Split(packageName, "/")[0])
-			packageName = "\"" + packageName + "\""
-			if len(aliasName) != 0 {
-				packageName = aliasName + " " + packageName
-			}
-			if err != nil {
+		if strings.Contains(packageName, "/") {
+			if isACorrectDomainName(packageName) {
+				packageName = makeFinalPackageName(packageName, aliasName)
 				builtInPackages = append(builtInPackages, packageName)
 			} else {
+				packageName = makeFinalPackageName(packageName, aliasName)
 				externalPackages = append(externalPackages, packageName)
 			}
+		} else {
+			packageName = makeFinalPackageName(packageName, aliasName)
+			builtInPackages = append(builtInPackages, packageName)
 		}
 	}
-
-	temp := ""
-	for _, line := range builtInPackages {
-		temp = temp + "    " + line + "\n"
-	}
-	temp = temp + "\n"
-	for _, line := range externalPackages {
-		temp = temp + "    " + line + "\n"
-	}
-
-	importContents = "import (\n" + temp + ")"
-
-	// writing back into the file
-	f, _ := os.OpenFile(fileName, os.O_RDWR, os.ModePerm)
-	defer f.Close()
-
-	var ip []byte
-	ip = append(ip, beforeImportContents...)
-	ip = append(ip, []byte(importContents)...)
-	ip = append(ip, afterImportContents...)
-	ioutil.WriteFile(fileName, ip, 0666)
-
-	return nil
+	return
 }
 
-func appendTo(builtInPackages []string, packageName, aliasName string) []string {
+func isACorrectDomainName(packageName string) bool {
+	_, err := net.LookupHost(strings.Split(packageName, "/")[0])
+	if err != nil {
+		return true
+	}
+	return false
+}
+
+func makeFinalPackageName(packageName string, aliasName string) string {
 	packageName = "\"" + packageName + "\""
 	if len(aliasName) != 0 {
 		packageName = aliasName + " " + packageName
 	}
-	builtInPackages = append(builtInPackages, packageName)
-	return builtInPackages
+	return packageName
 }
 
 func extractAliasedPackage(name string) (alias, packageName string) {
