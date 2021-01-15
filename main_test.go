@@ -33,6 +33,20 @@ func Test_well(t *testing.T) {
 		tearDown()
 	})
 
+	t.Run("it can make the messy #4 well imported", func(t *testing.T) {
+		makeTempFileFilledWith(getMessySourceFileContent4())
+		well(TestFileName)
+		assertTestFileEqualsTo(t, getWellSourceFileContent4())
+		tearDown()
+	})
+
+	t.Run("it can make the messy #5 well imported", func(t *testing.T) {
+		makeTempFileFilledWith(getMessySourceFileContent5())
+		well(TestFileName)
+		assertTestFileEqualsTo(t, getWellSourceFileContent5())
+		tearDown()
+	})
+
 	t.Run("it can make the messy and unsorted #1 well sorted and imported", func(t *testing.T) {
 		makeTempFileFilledWith(getUnSortedMessySourceFileContent1())
 		well(TestFileName)
@@ -151,6 +165,50 @@ import (
 func someFunction() {}`)
 }
 
+func getMessySourceFileContent4() []byte {
+	return []byte(`package main
+
+import (
+    "os/signal"
+    "fmt"
+)
+
+func someFunction() {}`)
+}
+
+func getWellSourceFileContent4() []byte {
+	return []byte(`package main
+
+import (
+    "fmt"
+    "os/signal"
+)
+
+func someFunction() {}`)
+}
+
+func getMessySourceFileContent5() []byte {
+	return []byte(`package main
+
+import (
+    "github.com/e"
+    "github.com/a"
+)
+
+func someFunction() {}`)
+}
+
+func getWellSourceFileContent5() []byte {
+	return []byte(`package main
+
+import (
+    "github.com/a"
+    "github.com/e"
+)
+
+func someFunction() {}`)
+}
+
 func getUnSortedMessySourceFileContent1() []byte {
 	return []byte(`package main
 
@@ -168,7 +226,6 @@ func getWellSortedSourceFileContent1() []byte {
 import (
     "fmt"
     "os"
-
 )
 
 func someFunction() {}`)
@@ -180,8 +237,8 @@ func getUnSortedMessySourceFileContent2() []byte {
 import (
     "fmt"
     "os"
-    "github.com/example"
-    "github.com/aexample"
+    "github.com/e"
+    "github.com/a"
 )
 
 func someFunction() {}`)
@@ -194,12 +251,9 @@ import (
     "fmt"
     "os"
 
-    "github.com/aexample"
-    "github.com/example"
+    "github.com/a"
+    "github.com/e"
 )
 
 func someFunction() {}`)
 }
-
-// todo test cases: imports without packages consist of `/`
-// todo test cases: imports without builtin packages

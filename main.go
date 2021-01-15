@@ -47,32 +47,32 @@ func well(fileName string) error {
 }
 
 func sortPackages(packages []string) []string {
-	o := make(map[string]string, 0)
+	extracted := make(map[string]string, 0)
 	for _, packageName := range packages {
 		if isAliased(packageName) {
 			alias, packageName := extractAliasedPackage(packageName)
-			o[packageName] = alias
+			extracted[packageName] = alias
 		} else {
-			o[packageName] = packageName
+			extracted[packageName] = packageName
 		}
 	}
 
-	keys := make([]string, 0, len(o))
-	for key, _ := range o {
+	keys := make([]string, 0, len(extracted))
+	for key, _ := range extracted {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)
 
-	temp := make([]string, 0)
+	output := make([]string, 0)
 	for _, k := range keys {
-		if k == o[k] {
-			temp = append(temp, k)
+		if k == extracted[k] {
+			output = append(output, k)
 			continue
 		}
-		temp = append(temp, o[k] + " " + k)
+		output = append(output, extracted[k] + " " + k)
 	}
 
-	return temp
+	return output
 }
 
 func writeTo(fileName string, contents []string) error {
@@ -94,14 +94,35 @@ func writeTo(fileName string, contents []string) error {
 }
 
 func makeUpImportContents(builtInPackages, externalPackages []string) string {
-	return "import (\n" + makeUpImportLines(builtInPackages) + "\n" + makeUpImportLines(externalPackages) + ")"
+	var output string
+	output = output + "import (\n"
+
+	if len(makeUpImportLines(builtInPackages)) != 0 {
+		output = output + makeUpImportLines(builtInPackages)
+		output = output + "\n"
+	}
+
+	if len(makeUpImportLines(externalPackages)) != 0 {
+		if len(makeUpImportLines(builtInPackages)) != 0 {
+			output = output + "\n"
+		}
+
+		output = output + makeUpImportLines(externalPackages)
+		output = output + "\n"
+	}
+
+	output = output + ")"
+
+	return output
 }
 
-func makeUpImportLines(packageNames []string) (output string) {
+func makeUpImportLines(packageNames []string) string {
+	output := make([]string, 0)
 	for _, line := range packageNames {
-		output = output + "    " + line + "\n"
+		output = append(output, "    " + line)
 	}
-	return
+
+	return strings.Join(output, "\n")
 }
 
 func categorizePackages(importLines []string) (builtInPackages, externalPackages []string) {
