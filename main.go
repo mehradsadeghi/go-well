@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -29,6 +30,9 @@ func well(fileName string) error {
 		normalizeImportLines(importContents),
 	)
 
+	builtInPackages = sortPackages(builtInPackages)
+	externalPackages = sortPackages(externalPackages)
+
 	importContents = makeUpImportContents(builtInPackages, externalPackages)
 
 	if err := writeTo(fileName, []string{
@@ -40,6 +44,35 @@ func well(fileName string) error {
 	}
 
 	return nil
+}
+
+func sortPackages(packages []string) []string {
+	o := make(map[string]string, 0)
+	for _, packageName := range packages {
+		if isAliased(packageName) {
+			alias, packageName := extractAliasedPackage(packageName)
+			o[packageName] = alias
+		} else {
+			o[packageName] = packageName
+		}
+	}
+
+	keys := make([]string, 0, len(o))
+	for key, _ := range o {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	temp := make([]string, 0)
+	for _, k := range keys {
+		if k == o[k] {
+			temp = append(temp, k)
+			continue
+		}
+		temp = append(temp, o[k] + " " + k)
+	}
+
+	return temp
 }
 
 func writeTo(fileName string, contents []string) error {

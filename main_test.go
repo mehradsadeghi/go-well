@@ -32,6 +32,20 @@ func Test_well(t *testing.T) {
 		assertTestFileEqualsTo(t, getWellSourceFileContent3())
 		tearDown()
 	})
+
+	t.Run("it can make the messy and unsorted #1 well sorted and imported", func(t *testing.T) {
+		makeTempFileFilledWith(getUnSortedMessySourceFileContent1())
+		well(TestFileName)
+		assertTestFileEqualsTo(t, getWellSortedSourceFileContent1())
+		tearDown()
+	})
+
+	t.Run("it can make the messy and unsorted #2 well sorted and imported", func(t *testing.T) {
+		makeTempFileFilledWith(getUnSortedMessySourceFileContent2())
+		well(TestFileName)
+		assertTestFileEqualsTo(t, getWellSortedSourceFileContent2())
+		tearDown()
+	})
 }
 
 func assertTestFileEqualsTo(t *testing.T, content []byte) {
@@ -125,14 +139,67 @@ func getWellSourceFileContent3() []byte {
 	return []byte(`package main
 
 import (
-    "fmt"
-    "os/signal"
     f "flag"
+    "fmt"
     "os"
+    "os/signal"
 
-    fuzz "github.com/andybalholm/cascadia/fuzz"
     "github.com/andybalholm/cascadia"
+    fuzz "github.com/andybalholm/cascadia/fuzz"
 )
 
 func someFunction() {}`)
 }
+
+func getUnSortedMessySourceFileContent1() []byte {
+	return []byte(`package main
+
+import (
+    "os"
+    "fmt"
+)
+
+func someFunction() {}`)
+}
+
+func getWellSortedSourceFileContent1() []byte {
+	return []byte(`package main
+
+import (
+    "fmt"
+    "os"
+
+)
+
+func someFunction() {}`)
+}
+
+func getUnSortedMessySourceFileContent2() []byte {
+	return []byte(`package main
+
+import (
+    "fmt"
+    "os"
+    "github.com/example"
+    "github.com/aexample"
+)
+
+func someFunction() {}`)
+}
+
+func getWellSortedSourceFileContent2() []byte {
+	return []byte(`package main
+
+import (
+    "fmt"
+    "os"
+
+    "github.com/aexample"
+    "github.com/example"
+)
+
+func someFunction() {}`)
+}
+
+// todo test cases: imports without packages consist of `/`
+// todo test cases: imports without builtin packages
