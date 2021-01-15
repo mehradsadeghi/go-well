@@ -62,8 +62,8 @@ func makeUpImportContents(builtInPackages, externalPackages []string) string {
 	return "import (\n" + makeUpImportLines(builtInPackages) + "\n" + makeUpImportLines(externalPackages) + ")"
 }
 
-func makeUpImportLines(builtInPackages []string) (output string) {
-	for _, line := range builtInPackages {
+func makeUpImportLines(packageNames []string) (output string) {
+	for _, line := range packageNames {
 		output = output + "    " + line + "\n"
 	}
 	return
