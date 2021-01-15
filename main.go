@@ -5,14 +5,53 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 )
 
-const FileName = "source.txt"
+const FileExtension = "go"
+const SearchIn = "."
 
 func main() {
-	well(FileName)
+	files, err := getFilesIn(SearchIn, FileExtension);
+	if err != nil {
+		fmt.Printf("failed loading files duo to %s", err.Error())
+		os.Exit(1)
+	}
+
+	for _, fileName := range files {
+		if err := well(fileName); err != nil {
+			fmt.Printf("failed welling %s duo to %s", fileName, err.Error())
+			continue
+		}
+	}
+}
+
+func getFilesIn(path, extension string) ([]string, error) {
+	libRegEx, err := regexp.Compile("^.+\\.(" + extension + ")$")
+	if err != nil {
+		return nil, err
+	}
+
+	files := make([]string, 0)
+	err = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if libRegEx.MatchString(info.Name()) {
+			files = append(files, path)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return files, nil
 }
 
 func well(fileName string) error {

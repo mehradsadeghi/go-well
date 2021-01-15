@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bytes"
-	"fmt"
-	"io/ioutil"
-	"os"
-	"testing"
+    "bytes"
+    "fmt"
+    "io/ioutil"
+    "os"
+    "testing"
 )
 
 const TestFileName = "test.txt"
